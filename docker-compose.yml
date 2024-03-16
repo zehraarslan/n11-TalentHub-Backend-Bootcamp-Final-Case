@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  db-user:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: user_db
+    ports:
+     - "5432:5432"
+
+
+  user-service:
+    build: user-service
+    ports:
+     - "8080:8080"
+    depends_on:
+     - db-user
