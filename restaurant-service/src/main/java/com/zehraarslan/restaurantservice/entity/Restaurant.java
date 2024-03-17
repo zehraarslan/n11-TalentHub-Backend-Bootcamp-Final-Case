@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SolrDocument(solrCoreName = "restaurant_solr")
+@SolrDocument(solrCoreName = "restaurant")
 public class Restaurant{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -41,12 +41,18 @@ import java.util.List;
     }
 
     @PostMapping
-    public ResponseEntity<RestResponse<RestaurantDto>> createRestaurant(@RequestBody RestaurantSaveRequest request) {
+    public ResponseEntity<RestResponse<RestaurantDto>> saveRestaurant(@RequestBody RestaurantSaveRequest request) {
         log.info("Creating restaurant with request: {}", request);
         RestaurantDto restaurantDto = restaurantService.save(request);
         return ResponseEntity.ok(RestResponse.of(restaurantDto));
     }
 
+    @PostMapping("/saveAll")
+    public ResponseEntity<RestResponse<List<RestaurantDto>>> saveAllRestaurants(@RequestBody List<RestaurantSaveRequest> requests) {
+
+            List<RestaurantDto> restaurantDtos = restaurantService.saveAll(requests);
+            return ResponseEntity.ok(RestResponse.of(restaurantDtos));
+    }
     @PutMapping("/{id}")
     public ResponseEntity<RestResponse<RestaurantDto>> updateRestaurant(@PathVariable String id, @RequestBody RestaurantUpdateRequest request) {
         return ResponseEntity.ok(RestResponse.of(restaurantService.update(id, request)));
@@ -70,5 +76,10 @@ import java.util.List;
     @DeleteMapping("/{id}")
     public void deleteRestaurant(@PathVariable String id) {
         restaurantService.deleteRestaurant(id);
+    }
+
+    @DeleteMapping()
+    public void deleteAllRestaurant() {
+        restaurantService.deleteAllRestaurant();
     }
 }

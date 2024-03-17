@@ -29,13 +29,9 @@ public record UserSaveRequest(@NotBlank(message = "Name is required")
                               String email,
 
                               @NotNull(message = "Latitude is required")
-                              @DecimalMin(value = "-90.0", message = "Latitude must be at least -90")
-                              @DecimalMax(value = "90.0", message = "Latitude must be at most 90")
                               double latitude,
 
                               @NotNull(message = "Longitude is required")
-                              @DecimalMin(value = "-180.0", message = "Longitude must be at least -180")
-                              @DecimalMax(value = "180.0", message = "Longitude must be at most 180")
                               double longitude) {
 
 

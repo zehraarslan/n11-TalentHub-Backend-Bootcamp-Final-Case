@@ -12,12 +12,14 @@ public interface RestaurantService {
     List<RestaurantDto> getAll();
     RestaurantDto getById(String id);
     RestaurantDto save(RestaurantSaveRequest request);
+    List<RestaurantDto> saveAll(List<RestaurantSaveRequest> requests);
 
     RestaurantDto update(String id, RestaurantUpdateRequest request);
     RestaurantDto updateCustomerLocation(String id, RestaurantUpdateLocationRequest request);
 
     RestaurantDto updateCustomerPassword(String id, RestaurantUpdatePasswordRequest request);
     void deleteRestaurant(String id);
+    void deleteAllRestaurant();
 
     String updateReviewScore(String id, Integer score);
 }

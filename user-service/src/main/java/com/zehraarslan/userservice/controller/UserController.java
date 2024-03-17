@@ -1,6 +1,8 @@
 package com.zehraarslan.userservice.controller;
 
 import com.zehraarslan.userservice.client.ReviewClient;
+import com.zehraarslan.userservice.dto.RestaurantDto;
+import com.zehraarslan.userservice.dto.RestaurantSuggestionsDto;
 import com.zehraarslan.userservice.dto.UserDto;
 import com.zehraarslan.userservice.general.RestResponse;
 import com.zehraarslan.userservice.request.UserSaveRequest;
@@ -21,7 +23,6 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final ReviewClient reviewClient;
-
     @GetMapping("/{id}")
     @Operation(summary = "Get user by ID", description = "Retrieves a user by their ID")
     public ResponseEntity<RestResponse<UserDto>> getUserById(@PathVariable Long id) {
@@ -42,6 +43,12 @@ public class UserController {
         return ResponseEntity.ok(RestResponse.of(userService.save(request)));
     }
 
+    @PostMapping("/saveAll")
+    public ResponseEntity<RestResponse<List<UserDto>>> saveAllUsers(@RequestBody List<UserSaveRequest> requests) {
+
+        List<UserDto> userDtos = userService.saveAll(requests);
+        return ResponseEntity.ok(RestResponse.of(userDtos));
+    }
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete user", description = "Deletes a user by their ID")
     public void deleteUser(@PathVariable Long id) {
@@ -67,7 +74,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/review")
-    public String review(@PathVariable Long id, @RequestParam String restaurantId, @RequestParam Integer score) {
+    public ResponseEntity<RestResponse<String>> review(@PathVariable Long id, @RequestParam String restaurantId, @RequestParam Integer score) {
         return reviewClient.updateReviewScore(restaurantId, score);
+    }
+
+    @GetMapping("/{id}/restaurant-suggestions")
+    public ResponseEntity<RestResponse<List<RestaurantSuggestionsDto>>> restaurantSuggestions(@PathVariable Long id) {
+       return ResponseEntity.ok(RestResponse.of(userService.restaurantSuggestions(id)));
     }
 }

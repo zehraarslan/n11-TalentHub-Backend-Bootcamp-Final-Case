@@ -7,5 +7,4 @@ public record UserDto(Long id,
                       String phoneNumber,
                       String email,
                       double latitude,
-                      double longitude) {
-}
+                      double longitude) { }

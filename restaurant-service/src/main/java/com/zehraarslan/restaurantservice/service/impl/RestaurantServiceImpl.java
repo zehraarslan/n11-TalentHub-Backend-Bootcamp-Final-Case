@@ -5,7 +5,6 @@ import com.zehraarslan.restaurantservice.entity.Restaurant;
 import com.zehraarslan.restaurantservice.exception.GeneralErrorMessage;
 import com.zehraarslan.restaurantservice.exception.SystemException;
 import com.zehraarslan.restaurantservice.mapper.RestaurantMapper;
-import com.zehraarslan.restaurantservice.mapper.RestautantConvert;
 import com.zehraarslan.restaurantservice.repository.RestaurantRepository;
 import com.zehraarslan.restaurantservice.request.RestaurantSaveRequest;
 import com.zehraarslan.restaurantservice.request.RestaurantUpdateLocationRequest;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -25,14 +25,13 @@ import java.util.List;
 public class RestaurantServiceImpl implements RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
-    private final RestautantConvert restautantConvert;
 
     @Override
     public List<RestaurantDto> getAll() {
         try {
             log.info("Retrieving all restaurants");
             List<Restaurant> restaurants = (List<Restaurant>) restaurantRepository.findAll();
-            List<RestaurantDto> restaurantDtos = restautantConvert.convertToRestaurantDtos(restaurants);
+            List<RestaurantDto> restaurantDtos = RestaurantMapper.INSTANCE.convertToRestaurantDtos(restaurants);
             log.info("Retrieved all restaurants successfully");
             return RestaurantMapper.INSTANCE.convertToRestaurantDtos(restaurants);
         } catch (Exception e) {
@@ -46,7 +45,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         try {
             log.info("Retrieving user by id: {}", id);
             Restaurant restaurant = getRestaurantByIdIfExists(id);
-            RestaurantDto restaurantDto = restautantConvert.convertToRestaurantDto(restaurant);
+            RestaurantDto restaurantDto = RestaurantMapper.INSTANCE.convertToRestaurantDto(restaurant);
             log.info("Restaurant retrieved successfully: {}", restaurant.getId());
             return restaurantDto;
         } catch (Exception e) {
@@ -66,10 +65,10 @@ public class RestaurantServiceImpl implements RestaurantService {
             }
             checkUniqueness(request.email(), request.phoneNumber(), null);
             validateLocation(request.latitude(), request.longitude());
-            Restaurant restaurant = restautantConvert.convertToRestaurant(request);
+            Restaurant restaurant = RestaurantMapper.INSTANCE.convertToRestaurant(request);
             setBaseAdditionalFields(restaurant);
             restaurantRepository.save(restaurant);
-            RestaurantDto restaurantDto = restautantConvert.convertToRestaurantDto(restaurant);
+            RestaurantDto restaurantDto = RestaurantMapper.INSTANCE.convertToRestaurantDto(restaurant);
             log.info("Restaurant saved successfully: {}", restaurant.getId());
             return restaurantDto;
         } catch (SystemException e) {
@@ -78,6 +77,36 @@ public class RestaurantServiceImpl implements RestaurantService {
             log.error("Error occurred while saving restaurant: {}", e.getMessage());
             throw new SystemException(GeneralErrorMessage.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Override
+    public List<RestaurantDto> saveAll(List<RestaurantSaveRequest> requests) {
+        try {
+            log.info("Saving multiple restaurants");
+            List<Restaurant> restaurants = requests.stream()
+                    .map(request -> {
+                        if (request.name() == null || request.email() == null || request.phoneNumber() == null || request.description() == null ||
+                                request.latitude() == null || request.longitude() == null) {
+                            throw new SystemException(GeneralErrorMessage.ILLEGAL_ARGUMENT_EXCEPTION);
+                        }
+                        checkUniqueness(request.email(), request.phoneNumber(), null);
+                        validateLocation(request.latitude(), request.longitude());
+                        Restaurant restaurant = RestaurantMapper.INSTANCE.convertToRestaurant(request);
+                        setBaseAdditionalFields(restaurant);
+                        return restaurant;
+                    })
+                    .collect(Collectors.toList());
+            restaurantRepository.saveAll(restaurants);
+            return restaurants.stream()
+                    .map(restaurant -> RestaurantMapper.INSTANCE.convertToRestaurantDto(restaurant))
+                    .collect(Collectors.toList());
+        } catch (SystemException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error occurred while saving multiple restaurants: {}", e.getMessage());
+            throw new SystemException(GeneralErrorMessage.INTERNAL_SERVER_ERROR);
+        }
+
     }
 
     @Override
@@ -96,7 +125,7 @@ public class RestaurantServiceImpl implements RestaurantService {
                 setBaseAdditionalFields(restaurant);
                 restaurant = restaurantRepository.save(restaurant);
                 log.info("restaurant updated successfully: {}", restaurant.getId());
-                return restautantConvert.convertToRestaurantDto(restaurant);
+                return RestaurantMapper.INSTANCE.convertToRestaurantDto(restaurant);
             } catch (Exception e) {
                 log.error("Error occurred while updating restaurant {}: {}", id, e.getMessage());
                 throw new SystemException(GeneralErrorMessage.INTERNAL_SERVER_ERROR);
@@ -115,7 +144,7 @@ public class RestaurantServiceImpl implements RestaurantService {
             restaurant.setLongitude(request.longitude());
             setBaseAdditionalFields(restaurant);
             restaurant = restaurantRepository.save(restaurant);
-            RestaurantDto restaurantDto = restautantConvert.convertToRestaurantDto(restaurant);
+            RestaurantDto restaurantDto = RestaurantMapper.INSTANCE.convertToRestaurantDto(restaurant);
             log.info("User location updated successfully: {}", restaurant.getId());
             return restaurantDto;
         } catch (SystemException e) {
@@ -142,7 +171,7 @@ public class RestaurantServiceImpl implements RestaurantService {
             restaurant.setPassword(request.newPassword());
             setBaseAdditionalFields(restaurant);
             restaurant = restaurantRepository.save(restaurant);
-            RestaurantDto restaurantDto = restautantConvert.convertToRestaurantDto(restaurant);
+            RestaurantDto restaurantDto = RestaurantMapper.INSTANCE.convertToRestaurantDto(restaurant);
             log.info("Restaurant password updated successfully: {}", restaurant.getId());
             return restaurantDto;
         } catch (SystemException e) {
@@ -166,6 +195,11 @@ public class RestaurantServiceImpl implements RestaurantService {
             log.error("Error occurred while deleting user {}: {}", id, e.getMessage());
             throw new SystemException(GeneralErrorMessage.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Override
+    public void deleteAllRestaurant() {
+        restaurantRepository.deleteAll();
     }
 
     @Override
