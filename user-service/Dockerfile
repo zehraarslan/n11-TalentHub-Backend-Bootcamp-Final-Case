@@ -1,16 +1,23 @@
-FROM openjdk:3.2.3-alpine AS builder
+FROM openjdk:21-slim AS builder
 
+# Set working directory
 WORKDIR /app
 
+# Copy pom.xml and build the application
 COPY pom.xml ./
 RUN mvn clean package
 
-FROM openjdk:3.2.3-alpine
+# Create a new thinner image for running the application
+FROM openjdk:21-slim
 
+# Set working directory
 WORKDIR /app
 
-COPY --from=builder /app/target/*.jar app.jar
+# Copy the JAR file from the builder stage
+COPY --from=builder /target/*.jar app.jar
 
+# Expose the port where your application runs (modify if needed)
 EXPOSE 8080
 
+# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

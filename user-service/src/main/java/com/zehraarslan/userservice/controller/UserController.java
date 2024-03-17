@@ -1,5 +1,6 @@
 package com.zehraarslan.userservice.controller;
 
+import com.zehraarslan.userservice.client.ReviewClient;
 import com.zehraarslan.userservice.dto.UserDto;
 import com.zehraarslan.userservice.general.RestResponse;
 import com.zehraarslan.userservice.request.UserSaveRequest;
@@ -19,6 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final ReviewClient reviewClient;
+
     @GetMapping("/{id}")
     @Operation(summary = "Get user by ID", description = "Retrieves a user by their ID")
     public ResponseEntity<RestResponse<UserDto>> getUserById(@PathVariable Long id) {
@@ -61,5 +64,10 @@ public class UserController {
     @Operation(summary = "Update user location", description = "Updates a user's location by their ID")
     public ResponseEntity<RestResponse<UserDto>> updateLocation(@PathVariable Long id, @Valid @RequestBody UserUpdateLocationRequest request) {
         return ResponseEntity.ok(RestResponse.of(userService.updateCustomerLocation(id, request)));
+    }
+
+    @GetMapping("/{id}/review")
+    public String review(@PathVariable Long id, @RequestParam String restaurantId, @RequestParam Integer score) {
+        return reviewClient.updateReviewScore(restaurantId, score);
     }
 }
